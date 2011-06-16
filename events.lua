@@ -135,7 +135,7 @@ function Event.emit(event, ...)
   end
 end
 
--- Silence an event's, causing any of it's callback
+-- Silence an event, causing any of it's callback
 -- functions to not be called if the event is emitted.
 -- You can pass a function as the second argument, which
 -- will cause the event to be silenced only for the call
