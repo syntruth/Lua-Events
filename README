@@ -8,19 +8,26 @@ Usage:
   Event.create("join")
 
   -- Observe the event with a callback.
-  -- The callback function will receive the event name
-  -- as the first parameter, and any arguments passed to
-  -- Event.emit().
-  -- There is an optional 3rd argument, which if true, will
-  -- create the event if it does not already exist.
-  function join_callback(event, ...)
-    ...
+  -- The callback function will receive an event object
+  -- which will have two parameters:
+  --   .type -- a string, which is the type of this event.
+  --   .args -- a table with data relative to this event.
+  -- There is an optional 3rd argument to observe(), which 
+  -- if true, will create the event if it does not already 
+  -- exist.
+  function a_callback(event)
+    io.write(string.format("I got an event: %s\n", event.type))
+    io.write(string.format("With %d arguments.\n", table.getn(event.args)))
   end
 
-  Event.observe("join", join_callback)
+  Event.observe("join", a_callback)
 
   -- Emit the event!
-  Event.emit("join", "foo", "bar")
+  -- The second argument to emit() should be a table 
+  -- of data related to the event. It can be nil, in 
+  -- which case the created event object's .args 
+  -- property will be set to {}.
+  Event.emit("join", {nick = "foobar", host = "..."})
 
   -- To no longer observe and event, pass in the callback
   -- function once again. Callbacks are matched based on
@@ -28,14 +35,14 @@ Usage:
   -- same function; passing in anonymous functions won't work, 
   -- unless you save the return value from Event.observe(), 
   -- since it returns the callback function provided.
-  Event.unobserve("join", join_callback)
+  Event.unobserve("join", a_callback)
 
   -- Silence an event if you wanted to prevent callbacks from 
   -- being called.
   Event.silence("join")
 
   -- any callbacks won't be called now.
-  Event.emit("join", "foo", "bar")
+  Event.emit("join", {nick = "foobar", host = "..."})
 
   -- Allow callbacks to happen once more.
   Event.unsilence("join")

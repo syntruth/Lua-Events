@@ -1,61 +1,68 @@
 --[[
-  Lua-based Event library to allow event emitting with attached callbacks.
-  
-  Usage:
+Lua-based Event library to allow event emitting with attached callbacks.
 
-    require "events"
+Usage:
 
-    -- Create an event.
-    Event.create("join")
+  require "events"
 
-    -- Observe the event with a callback.
-    -- The callback function will receive the event name
-    -- as the first parameter, and any arguments passed to
-    -- Event.emit().
-    -- There is an optional 3rd argument, which if true, will
-    -- create the event if it does not already exist.
-    function join_callback(event, ...)
-      ...
-    end
+  -- Create an event.
+  Event.create("join")
 
-    Event.observe("join", join_callback)
+  -- Observe the event with a callback.
+  -- The callback function will receive an event object
+  -- which will have two parameters:
+  --   .type -- a string, which is the type of this event.
+  --   .args -- a table with data relative to this event.
+  -- There is an optional 3rd argument to observe(), which 
+  -- if true, will create the event if it does not already 
+  -- exist.
+  function a_callback(event)
+    io.write(string.format("I got an event: %s\n", event.type))
+    io.write(string.format("With %d arguments.\n", table.getn(event.args)))
+  end
 
-    -- Emit the event!
-    Event.emit("join", "foo", "bar")
+  Event.observe("join", a_callback)
 
-    -- To no longer observe and event, pass in the callback
-    -- function once again. Callbacks are matched based on
-    -- the function you passed in. Remember, it HAS to be the
-    -- same function; passing in anonymous functions won't work, 
-    -- unless you save the return value from Event.observe(), 
-    -- since it returns the callback function provided.
-    Event.unobserve("join", join_callback)
+  -- Emit the event!
+  -- The second argument to emit() should be a table 
+  -- of data related to the event. It can be nil, in 
+  -- which case the created event object's .args 
+  -- property will be set to {}.
+  Event.emit("join", {nick = "foobar", host = "..."})
 
-    -- Silence an event if you wanted to prevent callbacks from 
-    -- being called.
-    Event.silence("join")
+  -- To no longer observe and event, pass in the callback
+  -- function once again. Callbacks are matched based on
+  -- the function you passed in. Remember, it HAS to be the
+  -- same function; passing in anonymous functions won't work, 
+  -- unless you save the return value from Event.observe(), 
+  -- since it returns the callback function provided.
+  Event.unobserve("join", a_callback)
 
-    -- any callbacks won't be called now.
-    Event.emit("join", "foo", "bar")
+  -- Silence an event if you wanted to prevent callbacks from 
+  -- being called.
+  Event.silence("join")
 
-    -- Allow callbacks to happen once more.
-    Event.unsilence("join")
+  -- any callbacks won't be called now.
+  Event.emit("join", {nick = "foobar", host = "..."})
 
-    -- You can also silence an event for a single call of a 
-    -- function. The next argument after the event to silence
-    -- is the name of the function to call after silencing the 
-    -- event, and any additional arguments are passed to that
-    -- function.
-    function func(arg1, arg2)
-      ...
-    end
+  -- Allow callbacks to happen once more.
+  Event.unsilence("join")
 
-    Event.silence("join", func, "foo", "bar")
+  -- You can also silence an event for a single call of a 
+  -- function. The next argument after the event to silence
+  -- is the name of the function to call after silencing the 
+  -- event, and any additional arguments are passed to that
+  -- function.
+  function func(arg1, arg2)
+    ...
+  end
 
-    -- Finally, you can remove events as well. This will remove
-    -- the event and all of it's callbacks by setting the event
-    -- to nil, allowing it to be garbage collected.
-    Event.remove("join") 
+  Event.silence("join", func, "foo", "bar")
+
+  -- Finally, you can remove events as well. This will remove
+  -- the event and all of it's callbacks by setting the event
+  -- to nil, allowing it to be garbage collected.
+  Event.remove("join") 
 ]]
 
 --  The Event object.
@@ -125,12 +132,21 @@ function Event.unobserve(event, callback)
   return false
 end
 
--- Event an event. Any extra arguments will be passed
--- to each callback functions.
-function Event.emit(event, ...)
+-- Event an event. Callback functions are passed an 
+-- event object with .type and .args properties, with
+-- .type being set to the type of event, and .args being
+-- set to the passed args value, which should be a table.
+-- If the args argument is nil, then an empty table will
+-- be assigned to it.
+function Event.emit(event, args)
   if Event.has_event(event) then
+
+    if not args then args = {} end
+
+    local ev = {type = event, args = args}
+
     for _, callback in Event.events[event] do
-      callback(event, unpack(arg))
+      callback(event, ev)
     end
   end
 end
