@@ -85,10 +85,7 @@ end
 
 -- Check to see if an event is known.
 function Event.has_event(event)
-  if Event.events[event] then
-    return true
-  end
-  return false
+  return Event.events[event] -- will be nil if it doesn't exist.
 end
 
 -- Observe an event. A callback function is required.
@@ -108,13 +105,13 @@ function Event.observe(event, callback, do_create)
   return callback
 end
 
--- No longer observe an event. The callback given to
--- original observe the event must be given. It HAS
--- to be the same function, matching the function's ID,
--- or else the callback won't be removed. Thus, be
--- careful passing in anonymous functions as callbacks,
--- unless you save the return value from Event.observe()
--- to later use to unobserve.
+-- No longer observe an event. The callback given to the
+-- original observe() call must be given. It HAS to be 
+-- the same function, matching the function's ID, or else 
+-- the callback won't be removed. Thus, be careful passing 
+-- in anonymous functions as callbacks, unless you save the
+-- return value from Event.observe() to later use to 
+-- unobserve.
 function Event.unobserve(event, callback)
   if Event.has_event(event) then
     local tmp = {}
@@ -132,7 +129,7 @@ function Event.unobserve(event, callback)
   return false
 end
 
--- Event an event. Callback functions are passed an 
+-- Emit an event. Callback functions are passed an 
 -- event object with .type and .args properties, with
 -- .type being set to the type of event, and .args being
 -- set to the passed args value, which should be a table.
