@@ -1,0 +1,57 @@
+Lua-based Event library to allow event emitting with attached callbacks.
+
+Usage:
+
+  require "events"
+
+  -- Create an event.
+  Event.create("join")
+
+  -- Observe the event with a callback.
+  -- The callback function will receive the event name
+  -- as the first parameter, and any arguments passed to
+  -- Event.emit().
+  -- There is an optional 3rd argument, which if true, will
+  -- create the event if it does not already exist.
+  function join_callback(event, ...)
+    ...
+  end
+
+  Event.observe("join", join_callback)
+
+  -- Emit the event!
+  Event.emit("join", "foo", "bar")
+
+  -- To no longer observe and event, pass in the callback
+  -- function once again. Callbacks are matched based on
+  -- the function you passed in. Remember, it HAS to be the
+  -- same function; passing in anonymous functions won't work, 
+  -- unless you save the return value from Event.observe(), 
+  -- since it returns the callback function provided.
+  Event.unobserve("join", join_callback)
+
+  -- Silence an event if you wanted to prevent callbacks from 
+  -- being called.
+  Event.silence("join")
+
+  -- any callbacks won't be called now.
+  Event.emit("join", "foo", "bar")
+
+  -- Allow callbacks to happen once more.
+  Event.unsilence("join")
+
+  -- You can also silence an event for a single call of a 
+  -- function. The next argument after the event to silence
+  -- is the name of the function to call after silencing the 
+  -- event, and any additional arguments are passed to that
+  -- function.
+  function func(arg1, arg2)
+    ...
+  end
+
+  Event.silence("join", func, "foo", "bar")
+
+  -- Finally, you can remove events as well. This will remove
+  -- the event and all of it's callbacks by setting the event
+  -- to nil, allowing it to be garbage collected.
+  Event.remove("join") 
